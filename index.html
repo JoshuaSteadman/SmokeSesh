@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrated Dashboard</title>
+    <script src="https://unpkg.com/webamp@1.5.0/built/webamp.bundle.min.js"></script>
+    <script src="https://unpkg.com/butterchurn@2.6.7/lib/butterchurn.min.js"></script>
+    <script src="https://unpkg.com/butterchurn-presets@2.4.7/lib/butterchurnPresets.min.js"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', Arial, sans-serif;
+            height: 100%;
+            overflow: hidden;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .ticker-container {
+			width: 100%;
+			overflow: hidden;
+			background-color: #1e222d;
+			border-bottom: 1px solid #2a2e39;
+			position: relative;
+			}
+        #webamp-container {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            width: 300px;
+            height: 200px;
+            z-index: 1000;
+        }
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-auto-rows: minmax(250px, 1fr);
+            gap: 15px;
+            padding: 15px;
+            flex-grow: 1;
+            overflow: auto;
+        }
+        .chart-container {
+            border: 1px solid #2a2e39;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background-color: #1e222d;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .chart-container:hover {
+            transform: translateY(-5px);
+        }
+        .chart-header {
+            background-color: #2a2e39;
+            padding: 10px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 14px;
+            color: #d1d4dc;
+        }
+        .chart {
+            flex-grow: 1;
+            min-height: 200px;
+        }
+        .music-widget {
+            position: fixed;
+            top: 50px;
+            right: 10px;
+            z-index: 1001;
+            background-color: rgba(42, 46, 57, 0.8);
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .music-widget.minimized {
+            opacity: 0.3;
+            transform: translateX(70%);
+        }
+        .music-widget:hover {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .music-widget h3 {
+            margin: 0 0 10px 0;
+            color: #d1d4dc;
+            font-size: 14px;
+        }
+        .music-widget input, .music-widget button {
+            margin-bottom: 5px;
+        }
+        #symbol-selector {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            z-index: 1000;
+            padding: 5px 10px;
+            font-size: 14px;
+            background-color: #2a2e39;
+            color: #d1d4dc;
+            border: 1px solid #4a4f58;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="ticker-container">
+            <select id="symbol-selector">
+                <option value="BTCUSD">BTC/USD</option>
+                <option value="ETHUSD">ETH/USD</option>
+                <option value="EURUSD">EUR/USD</option>
+                <option value="AAPL">AAPL</option>
+                <option value="NVDA">NVDA</option>
+                <option value="TSLA">TSLA</option>
+                <option value="AMD">AMD</option>
+                <option value="MSOS">MSOS</option>
+                <option value="SQQQ">SQQQ</option>
+                <option value="QQQ">QQQ</option>
+                <option value="SPY">SPY</option>
+            </select>
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-tickers.js" async>
+                {
+                "symbols": [
+				  {"title": "S&P 500", "proName": "INDEX:SPX"},
+				  {"title": "Nasdaq 100", "proName": "INDEX:IUXX"},
+				  {"title": "Dow Jones", "proName": "INDEX:DJI"},  // Added Dow Jones
+				  {"title": "EUR/USD", "proName": "FX_IDC:EURUSD"},
+				  {"title": "BTC/USD", "proName": "BITSTAMP:BTCUSD"},  // Changed exchange
+				  {"title": "ETH/USD", "proName": "BITSTAMP:ETHUSD"},  // Changed exchange
+				  {"description": "Apple", "proName": "NASDAQ:AAPL"},
+				  {"description": "Microsoft", "proName": "NASDAQ:MSFT"},
+				  {"description": "Google", "proName": "NASDAQ:GOOGL"},
+				  {"description": "Amazon", "proName": "NASDAQ:AMZN"},
+				  {"description": "NVIDIA", "proName": "NASDAQ:NVDA"},
+				  {"description": "Tesla", "proName": "NASDAQ:TSLA"},
+				  {"description": "JPMorgan", "proName": "NYSE:JPM"},  // Added JPMorgan
+				  {"description": "Johnson & Johnson", "proName": "NYSE:JNJ"},  // Added Johnson & Johnson
+				  {"description": "Visa", "proName": "NYSE:V"}  // Added Visa
+				],
+                "colorTheme": "dark",
+                "isTransparent": false,
+                "showSymbolLogo": true,
+                "locale": "en"
+                }
+                </script>
+            </div>
+        </div>
+        <div id="webamp-container"></div>
+        <div class="chart-grid">
+            <div class="chart-container">
+                <div class="chart-header"></div>
+                <div id="chart1" class="chart"></div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-header"></div>
+                <div id="chart2" class="chart"></div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-header"></div>
+                <div id="chart3" class="chart"></div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-header"></div>
+                <div id="chart4" class="chart"></div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-header"></div>
+                <div id="chart5" class="chart"></div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-header"></div>
+                <div id="chart6" class="chart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="music-widget">
+        <h3>Music</h3>
+        <input type="text" id="searchInput" placeholder="Search for music...">
+        <button onclick="searchMusic()">Search</button>
+        <div id="searchResults"></div>
+    </div>
+    <script>
+        const Webamp = window.Webamp;
+        const webamp = new Webamp({
+            __butterchurnOptions: {
+                importButterchurn: () => Promise.resolve(window.butterchurn),
+                getPresets: () => {
+                    const presets = window.butterchurnPresets.getPresets();
+                    return Object.keys(presets).map((name) => ({
+                        name,
+                        butterchurnPresetObject: presets[name],
+                    }));
+                },
+                butterchurnOpen: true,
+            },
+        });
+
+        webamp.renderWhenReady(document.getElementById("webamp-container")).then(() => {
+            webamp.store.dispatch({ type: "SET_MILKDROP_DESKTOP", enabled: true });
+        });
+
+        let currentSymbol = "BTCUSD";
+        const timeframes = ["1", "3", "30", "240", "D", "W"];
+        const timeframeNames = ["1 Minute", "15 Minutes", "1 Hour", "4 Hours", "1 Day", "1 Week"];
+
+        function createTradingViewWidget(containerId, symbol, interval, timeframeName) {
+            const intervalToLength = {
+                '1': 1440,
+                '15': 96,
+                '60': 24,
+                'default': 50
+            };
+
+            const length = intervalToLength[interval] || intervalToLength['default'];
+
+            new TradingView.widget({
+                "width": "100%",
+                "height": "100%",
+                "symbol": symbol,
+                "interval": interval,
+                "timezone": "Etc/UTC",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#2a2e39",
+                "enable_publishing": false,
+                "hide_top_toolbar": true,
+                "hide_legend": true,
+                "save_image": true,
+                "container_id": containerId,
+                "studies": [
+                    {
+                        "id": "DONCH@tv-basicstudies",
+                        "inputs": {
+                            "length": length,
+                            "source": "close"
+                        }
+                    },
+                    {
+                        "id": "MASimple@tv-basicstudies",
+                        "inputs": {
+                            "length": length,
+                            "source": "close"
+                        },
+                        "linkedTo": "DONCH@tv-basicstudies"
+                    }
+                ],
+                "studies_overrides": {
+                    "volume.volume ma.color": "#FF6D00",
+                    "volume.volume ma.linewidth": 2,
+                    "OBV.plot.color": "#FFD700",
+                    "MASimple.plot.color": "#FF0000"
+                },
+                "overrides": {
+                    "paneProperties.background": "#1e222d",
+                    "paneProperties.vertGridProperties.color": "#2a2e39",
+                    "paneProperties.horzGridProperties.color": "#2a2e39",
+                    "symbolWatermarkProperties.transparency": 90,
+                    "scalesProperties.textColor": "#d1d4dc",
+                    "mainSeriesProperties.candleStyle.upColor": "#26a69a",
+                    "mainSeriesProperties.candleStyle.downColor": "#ef5350",
+                    "mainSeriesProperties.candleStyle.drawWick": true,
+                    "mainSeriesProperties.candleStyle.drawBorder": true,
+                    "mainSeriesProperties.candleStyle.borderUpColor": "#26a69a",
+                    "mainSeriesProperties.candleStyle.borderDownColor": "#ef5350",
+                    "mainSeriesProperties.candleStyle.wickUpColor": "#26a69a",
+                    "mainSeriesProperties.candleStyle.wickDownColor": "#ef5350"
+                }
+            });
+            document.querySelector(`#${containerId}`).closest('.chart-container').querySelector('.chart-header').textContent = `${symbol} - ${timeframeName}`;
+        }
+
+        function updateCharts(symbol) {
+            for (let i = 0; i < 6; i++) {
+                createTradingViewWidget(`chart${i+1}`, symbol, timeframes[i], timeframeNames[i]);
+            }
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        updateCharts(currentSymbol);
+
+        document.getElementById('symbol-selector').addEventListener('change', function() {
+            currentSymbol = this.value;
+            updateCharts(currentSymbol);
+        });
+
+        const debouncedResize = debounce(function() {
+            updateCharts(currentSymbol);
+        }, 250);
+
+        window.addEventListener('resize', debouncedResize);
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const chartId = entry.target.querySelector('.chart').id;
+                    const index = parseInt(chartId.replace('chart', '')) - 1;
+                    createTradingViewWidget(chartId, currentSymbol, timeframes[index], timeframeNames[index]);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.chart-container').forEach(container => {
+            observer.observe(container);
+        });
+
+        function searchMusic() {
+            const query = document.getElementById('searchInput').value;
+            const url = `https://archive.org/advancedsearch.php?q=${encodeURIComponent(query)}+AND+mediatype%3Aaudio&fl[]=identifier,title,description&sort[]=&sort[]=&sort[]=&rows=10&page=1&output=json`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => displayResults(data.response.docs))
+                .catch(error => console.error('Error:', error));
+        }
+
+        function displayResults(items) {
+            const resultsDiv = document.getElementById('searchResults');
+            resultsDiv.innerHTML = '';
+            items.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.innerHTML = `
+                    <p>${item.title}</p>
+                    <button onclick="playInWebamp('${item.identifier}')">Play in Webamp</button>
+                `;
+                resultsDiv.appendChild(itemDiv);
+            });
+        }
+
+        function playInWebamp(identifier) {
+            const apiUrl = `https://archive.org/metadata/${identifier}/files`;
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const mp3Files = data.result.filter(file => file.name.endsWith('.mp3'));
+                    if (mp3Files.length > 0) {
+                        const track = {
+                            url: `https://archive.org/download/${identifier}/${encodeURIComponent(mp3Files[0].name)}`,
+                            metaData: {
+                                title: mp3Files[0].name,
+                            },
+                        };
+                        webamp.appendTracks([track]);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        const musicWidget = document.querySelector('.music-widget');
+        let minimizeTimeout;
+
+        function minimizeWidget() {
+            musicWidget.classList.add('minimized');
+        }
+
+        function maximizeWidget() {
+            musicWidget.classList.remove('minimized');
+            clearTimeout(minimizeTimeout);
+            minimizeTimeout = setTimeout(minimizeWidget, 5000);
+        }
+
+        musicWidget.addEventListener('mouseenter', maximizeWidget);
+        musicWidget.addEventListener('mouseleave', () => {
+            minimizeTimeout = setTimeout(minimizeWidget, 5000);
+        });
+
+        minimizeTimeout = setTimeout(minimizeWidget, 5000);
+
+        musicWidget.querySelectorAll('input, button').forEach(element => {
+            element.addEventListener('focus', () => {
+                clearTimeout(minimizeTimeout);
+            });
+            element.addEventListener('blur', () => {
+                minimizeTimeout = setTimeout(minimizeWidget, 5000);
+            });
+        });
+    </script>
+</body>
+</html>
