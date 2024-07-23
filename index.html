@@ -24,12 +24,12 @@
             height: 100vh;
         }
         .ticker-container {
-			width: 100%;
-			overflow: hidden;
-			background-color: #1e222d;
-			border-bottom: 1px solid #2a2e39;
-			position: relative;
-			}
+            width: 100%;
+            overflow: hidden;
+            background-color: #1e222d;
+            border-bottom: 1px solid #2a2e39;
+            position: relative;
+        }
         #webamp-container {
             position: fixed;
             bottom: 10px;
@@ -38,16 +38,8 @@
             height: 200px;
             z-index: 1000;
         }
-        .chart-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            grid-auto-rows: minmax(250px, 1fr);
-            gap: 15px;
-            padding: 15px;
-            flex-grow: 1;
-            overflow: auto;
-        }
         .chart-container {
+            flex-grow: 1;
             border: 1px solid #2a2e39;
             border-radius: 8px;
             overflow: hidden;
@@ -55,10 +47,7 @@
             flex-direction: column;
             background-color: #1e222d;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-        .chart-container:hover {
-            transform: translateY(-5px);
+            margin: 15px;
         }
         .chart-header {
             background-color: #2a2e39;
@@ -116,10 +105,10 @@
 <body>
     <div class="main-container">
         <div class="ticker-container">
-            <select id="symbol-selector">
+            <select id="symbol-selector">				
                 <option value="BTCUSD">BTC/USD</option>
-                <option value="ETHUSD">ETH/USD</option>
-                <option value="EURUSD">EUR/USD</option>
+				<option value="WHSELFINVEST:USTECH100CFD">USTECH100</option>
+                <option value="BATUSD">BAT/USD</option>          
                 <option value="AAPL">AAPL</option>
                 <option value="NVDA">NVDA</option>
                 <option value="TSLA">TSLA</option>
@@ -134,22 +123,22 @@
                 <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-tickers.js" async>
                 {
                 "symbols": [
-				  {"title": "S&P 500", "proName": "INDEX:SPX"},
-				  {"title": "Nasdaq 100", "proName": "INDEX:IUXX"},
-				  {"title": "Dow Jones", "proName": "INDEX:DJI"},  // Added Dow Jones
-				  {"title": "EUR/USD", "proName": "FX_IDC:EURUSD"},
-				  {"title": "BTC/USD", "proName": "BITSTAMP:BTCUSD"},  // Changed exchange
-				  {"title": "ETH/USD", "proName": "BITSTAMP:ETHUSD"},  // Changed exchange
-				  {"description": "Apple", "proName": "NASDAQ:AAPL"},
-				  {"description": "Microsoft", "proName": "NASDAQ:MSFT"},
-				  {"description": "Google", "proName": "NASDAQ:GOOGL"},
-				  {"description": "Amazon", "proName": "NASDAQ:AMZN"},
-				  {"description": "NVIDIA", "proName": "NASDAQ:NVDA"},
-				  {"description": "Tesla", "proName": "NASDAQ:TSLA"},
-				  {"description": "JPMorgan", "proName": "NYSE:JPM"},  // Added JPMorgan
-				  {"description": "Johnson & Johnson", "proName": "NYSE:JNJ"},  // Added Johnson & Johnson
-				  {"description": "Visa", "proName": "NYSE:V"}  // Added Visa
-				],
+                    {"title": "NVIDIA", "proName": "NASDAQ:NVDA"},
+                    {"title": "Nasdaq 100", "proName": "INDEX:IUXX"},
+                    {"title": "Google", "proName": "NASDAQ:GOOGL"},
+                    {"title": "Amazon", "proName": "NASDAQ:MSFT"},
+                    {"title": "BTC/USD", "proName": "COINBASE:BTCUSD"},
+                    {"title": "BAT/USD", "proName": "COINBASE:BATUSD"},
+                    {"description": "Apple", "proName": "NASDAQ:AAPL"},
+                    {"description": "Microsoft", "proName": "NASDAQ:MSFT"},
+                    {"description": "Google", "proName": "NASDAQ:GOOGL"},
+                    {"description": "Amazon", "proName": "NASDAQ:AMZN"},
+                    {"description": "NVIDIA", "proName": "NASDAQ:NVDA"},
+                    {"description": "Tesla", "proName": "NASDAQ:TSLA"},
+                    {"description": "JPMorgan", "proName": "NYSE:JPM"},
+                    {"description": "Johnson & Johnson", "proName": "NYSE:JNJ"},
+                    {"description": "Visa", "proName": "NYSE:V"}
+                ],
                 "colorTheme": "dark",
                 "isTransparent": false,
                 "showSymbolLogo": true,
@@ -159,31 +148,9 @@
             </div>
         </div>
         <div id="webamp-container"></div>
-        <div class="chart-grid">
-            <div class="chart-container">
-                <div class="chart-header"></div>
-                <div id="chart1" class="chart"></div>
-            </div>
-            <div class="chart-container">
-                <div class="chart-header"></div>
-                <div id="chart2" class="chart"></div>
-            </div>
-            <div class="chart-container">
-                <div class="chart-header"></div>
-                <div id="chart3" class="chart"></div>
-            </div>
-            <div class="chart-container">
-                <div class="chart-header"></div>
-                <div id="chart4" class="chart"></div>
-            </div>
-            <div class="chart-container">
-                <div class="chart-header"></div>
-                <div id="chart5" class="chart"></div>
-            </div>
-            <div class="chart-container">
-                <div class="chart-header"></div>
-                <div id="chart6" class="chart"></div>
-            </div>
+        <div class="chart-container">
+            <div class="chart-header"></div>
+            <div id="chart" class="chart"></div>
         </div>
     </div>
     <div class="music-widget">
@@ -213,13 +180,20 @@
         });
 
         let currentSymbol = "BTCUSD";
-        const timeframes = ["1", "3", "30", "240", "D", "W"];
-        const timeframeNames = ["1 Minute", "15 Minutes", "1 Hour", "4 Hours", "1 Day", "1 Week"];
+        let currentTimeframe = "30";
+        const timeframeNames = {
+            "1": "1 Minute",
+            "30": "30 Minutes",
+            "60": "1 Hour",
+            "240": "4 Hours",
+            "D": "1 Day",
+            "W": "1 Week"
+        };
 
-        function createTradingViewWidget(containerId, symbol, interval, timeframeName) {
+        function createTradingViewWidget(containerId, symbol, interval) {
             const intervalToLength = {
                 '1': 1440,
-                '15': 96,
+                '30': 48,
                 '60': 24,
                 'default': 50
             };
@@ -280,59 +254,18 @@
                     "mainSeriesProperties.candleStyle.wickDownColor": "#ef5350"
                 }
             });
-            document.querySelector(`#${containerId}`).closest('.chart-container').querySelector('.chart-header').textContent = `${symbol} - ${timeframeName}`;
+            document.querySelector('.chart-header').textContent = `${symbol} - ${timeframeNames[interval]}`;
         }
 
-        function updateCharts(symbol) {
-            for (let i = 0; i < 6; i++) {
-                createTradingViewWidget(`chart${i+1}`, symbol, timeframes[i], timeframeNames[i]);
-            }
+        function updateChart() {
+            createTradingViewWidget('chart', currentSymbol, currentTimeframe);
         }
 
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        updateCharts(currentSymbol);
+        updateChart();
 
         document.getElementById('symbol-selector').addEventListener('change', function() {
             currentSymbol = this.value;
-            updateCharts(currentSymbol);
-        });
-
-        const debouncedResize = debounce(function() {
-            updateCharts(currentSymbol);
-        }, 250);
-
-        window.addEventListener('resize', debouncedResize);
-
-        const observerOptions = {
-            root: null,
-            rootMargin: '0px',
-            threshold: 0.1
-        };
-
-        const observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const chartId = entry.target.querySelector('.chart').id;
-                    const index = parseInt(chartId.replace('chart', '')) - 1;
-                    createTradingViewWidget(chartId, currentSymbol, timeframes[index], timeframeNames[index]);
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.chart-container').forEach(container => {
-            observer.observe(container);
+            updateChart();
         });
 
         function searchMusic() {
